@@ -207,7 +207,7 @@ def fill_out_rest_of_application(driver, position_id):
 
         print(f'--filled out reserve info')
 
-    time.sleep(random.uniform(0.5,4)
+    time.sleep(random.uniform(0.5, 4))
     driver.find_element_by_xpath(SUBMIT_BUTTON).click()
 
     print(f"successfully submitted the application")
