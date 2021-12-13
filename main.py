@@ -11,8 +11,9 @@ from faker import Faker
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
-from resume_faker import make_resume
 from pdf2image import convert_from_path
+
+from selenium.webdriver.common.action_chains import ActionChains
 
 from webdriver_manager.chrome import ChromeDriverManager
 os.environ['WDM_LOG_LEVEL'] = '0'
@@ -22,7 +23,6 @@ from constants.fileNames import *
 from constants.classNames import *
 from constants.elementIds import *
 from constants.email import *
-from constants.location import *
 from constants.urls import *
 from constants.xPaths import *
 
@@ -114,124 +114,127 @@ def solveCaptcha(driver):
     time.sleep(2)
     driver.switch_to.default_content()
 
-def start_driver(random_city):
+def start_driver():
     driver = webdriver.Chrome(ChromeDriverManager().install())
-    driver.get(CITIES_TO_URLS[random_city])
+    driver.get(FORM_URL)
     driver.implicitly_wait(10)
     time.sleep(2)
-    driver.find_element_by_xpath(APPLY_NOW_BUTTON_1).click()
-    driver.find_element_by_xpath(APPLY_NOW_BUTTON_2).click()
-    driver.find_element_by_xpath(CREATE_AN_ACCOUNT_BUTTON).click()
     return driver
 
+def fill_out_rest_of_application(driver, position_id):
+    if position_id == 'i21':
+        # Confirm qualifications
+        driver.find_element_by_id(POLICE_OFFICER_MIN_QUAL).click()
+        time.sleep(random.uniform(0.5, 4))
+        driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-def generate_account(driver, fake_identity):
-    # make fake account info and fill
+        # Choose a Prospect Day
+        day_id = random.choice(PROSPECT_DAYS)
+        driver.find_element_by_id(day_id).click()
+        print(f'--filled out officer info')
+    elif position_id in ['i24', 'i27']:
+        day_id = ''
+        education = ''
+        if position_id == 'i24':
+            # Confirm residency and age
+            driver.find_element_by_id(DC_RESIDENCY).click()
+            driver.find_element_by_id(AGE_CONFIRM).click()
+            time.sleep(random.uniform(0.5, 4))
+            driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-    email = fake.free_email()
-    password = fake.password()
-    for key in XPATHS_2.keys():
-        match key:
-            case 'email' | 'email-retype':
-                info = fake_identity['email']
-            case 'pass' | 'pass-retype':
-                info = password
-            case 'first_name':
-                info = fake_identity['first_name']
-            case 'last_name':
-                info = fake_identity['last_name']
-            case 'pn':
-                info = fake.phone_number()
+            # Give education background
+            day_id = random.choices(DC_GRAD, [3, 1])[0]
+            driver.find_element_by_id(DC_RESIDENCY).click()
+            time.sleep(random.uniform(0.5, 4))
+            driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-        driver.find_element_by_xpath(XPATHS_2.get(key)).send_keys(info)
+            if day_id == 'i5':
+                education = random.choice(DC_SCHOOLS)
+            if day_id == 'i8':
+                education = random.choice(NON_DC_ED)
+            print(f'--filled out non-hs cadet info')
+        if position_id == 'i27': 
+            driver.find_element_by_id(HS_CADET_CONFIRM).click()
+            time.sleep(random.uniform(0.5, 4))
+            driver.find_element_by_xpath(NEXT_BUTTON).click()
+            education = random.choice(DC_SCHOOLS)
 
-    time.sleep(random.randint(0, 2))
-    select = Select(driver.find_element_by_id(COUNTRY_REGION_CODE_LABEL))
-    select.select_by_value(COUNTRY_CODE_US)
-    select = Select(driver.find_element_by_id(COUNTRY_REGION_OF_RESIDENCE_LABEL))
-    select.select_by_value(COUNTRY_CODE_US)
+        print(education)
+        time.sleep(2)
+        driver.find_element_by_class_name("quantumWizMenuPaperselectOptionList").click()
+        time.sleep(2)
+        options=driver.find_element_by_class_name("exportSelectPopup")
+        elements = options.find_elements_by_tag_name('span')
+        actions = ActionChains(driver)
+        try:
+            for e in elements:
+                if e.text == education:
+                    actions.move_to_element(e).perform()
+                    e.click()
+        except:
+          elements[5].click()
 
-    driver.find_element_by_xpath(READ_ACCEPT_DATA_PRIVACY_STATEMENT_ANCHORTAG).click()
-    time.sleep(1.5)
-    driver.find_element_by_xpath(ACCEPT_BUTTON).click()
-    time.sleep(2)
-    solveCaptcha(driver)
-    driver.find_element_by_xpath(CREATE_ACCOUNT_BUTTON).click()
-    time.sleep(1.5)
+        time.sleep(random.uniform(0.5, 4))
+        driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-    print(f"successfully made account for fake email {email}")
+        # Heard about the job
+        source_id = random.choice(HEARD_ABOUT)
+        driver.find_element_by_id(source_id).click()
+        print(f'--filled out cadet info')
+    elif position_id == 'i30':
+        # Confirm various statements
+        driver.find_element_by_id(RESERVE_CONFIRM_1).click()
+        driver.find_element_by_id(RESERVE_CONFIRM_2).click()
+        driver.find_element_by_id(RESERVE_CONFIRM_3).click()
+        driver.find_element_by_id(RESERVE_CONFIRM_4).click()
+        time.sleep(random.uniform(0.5, 4))
+        driver.find_element_by_xpath(NEXT_BUTTON).click()
 
+        # Confirm another statement
+        driver.find_element_by_id(RESERVE_TRAIN_CONFIRM).click()
+        time.sleep(random.uniform(0.5, 4))
+        driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-def fill_out_application_and_submit(driver, random_city, fake_identity):
+        # Confirm another statement
+        driver.find_element_by_id(POLICE_OFFICER_MIN_QUAL).click()
+        time.sleep(random.uniform(0.5, 4))
+        driver.find_element_by_xpath(NEXT_BUTTON).click()
+
+        # Choose a Prospect Day
+        day_id = random.choice(PROSPECT_DAYS)
+        time.sleep(random.uniform(0.5, 4))
+        driver.find_element_by_id(day_id).click()
+
+        print(f'--filled out reserve info')
+
+#    time.sleep(random.uniform(0.5,4)
+#    driver.find_element_by_xpath(SUBMIT_BUTTON).click()
+
+    print(f"successfully submitted the application")
+    return
+
+def fill_out_first_page(driver, fake_identity):
     driver.implicitly_wait(10)
 
-    # make resume
-    resume_filename = fake_identity['last_name']+'-Resume'
-    make_resume(fake_identity['first_name']+' '+fake_identity['last_name'], fake_identity['email'], resume_filename+'.pdf')
-    images = convert_from_path(resume_filename+'.pdf')
-    images[0].save(resume_filename+'.png', 'PNG')
+    # fill out text fields
+    text_fields = driver.find_elements_by_xpath(TEXT_FIELDS)
+    text_fields[0].send_keys(fake_identity['first_name'])
+    text_fields[1].send_keys(fake_identity['last_name'])
+    text_fields[2].send_keys(fake_identity['email'])
+    text_fields[3].send_keys(fake_identity['phone'])
 
-    # fill out form parts of app
-    driver.find_element_by_xpath(PROFILE_INFORMATION_DROPDOWN).click()
-    driver.find_element_by_xpath(CANDIDATE_SPECIFIC_INFORMATION_DROPDOWN).click()
+    # fill out radio button
+    position_id = random.choices(POSITIONS, [4, 3, 1, 2])[0]
+    driver.find_element_by_id(position_id).click()
 
-    for key in XPATHS_1.keys():
+    # go to next page
+    time.sleep(random.uniform(0.5, 4))
+    driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-        match key:
-            case 'resume':
-                driver.find_element_by_xpath(UPLOAD_A_RESUME_BUTTON).click()
-                info = os.getcwd() + '/'+resume_filename+'.png'
-            case 'addy':
-                info = fake.street_address()
-            case 'city':
-                info = random_city
-            case 'zip':
-                info = CITIES_TO_ZIP_CODES[random_city]
-            case 'job':
-                info = fake.job()
-            case 'salary':
-                info = random.randint(15, 35)
+    print(f"--filled out page 1")
 
-        driver.find_element_by_xpath(XPATHS_1.get(key)).send_keys(info)
-
-    print(f"successfully filled out app forms for {random_city}")
-
-    # fill out dropdowns
-    select = Select(driver.find_element_by_id(CITIZEN_QUESTION_LABEL))
-    select.select_by_visible_text(YES)
-    select = Select(driver.find_element_by_id(COUNTRY_OF_ORIGIN_LABEL))
-    select.select_by_visible_text(FULL_NAME_US)
-    select = Select(driver.find_element_by_id(EIGHTEEN_YEARS_OLD_LABEL))
-    select.select_by_visible_text(YES)
-    select = Select(driver.find_element_by_id(REQUIRE_SPONSORSHIP_LABEL))
-    select.select_by_visible_text(NO)
-    select = Select(driver.find_element_by_id(PREVIOUSLY_WORKED_LABEL))
-    select.select_by_visible_text(NO)
-    select = Select(driver.find_element_by_id(PREVIOUSLY_PARTNERED_LABEL))
-    select.select_by_visible_text(NO)
-    select = Select(driver.find_element_by_id(RELATIVE_WORKER_LABEL))
-    select.select_by_visible_text(NO)
-    select = Select(driver.find_element_by_id(ESSENTIAL_FUNCTIONS_LABEL))
-    select.select_by_visible_text(YES)
-    select = Select(driver.find_element_by_id(PREVIOUSLY_PARTNERED_LABEL))
-    select.select_by_visible_text(NO)
-    time.sleep(1)
-    select = Select(driver.find_element_by_id(GENDER_LABEL))
-    gender = random.choice(GENDERS_LIST)
-    select.select_by_visible_text(gender)
-    driver.find_element_by_xpath(MIXER_QUESTION_1_LABEL).click()
-    driver.find_element_by_xpath(MIXER_QUESTION_2_LABEL).click()
-
-    els = driver.find_elements_by_xpath(LONG_PERIODS_QUESTION_LABEL)
-    [el.click() for el in els]
-
-    time.sleep(5)
-    driver.find_element_by_xpath(APPLY_BUTTON).click()
-    print(f"successfully submitted application")
-
-    # take out the trash
-    os.remove(resume_filename+'.pdf')
-    os.remove(resume_filename+'.png')
+    fill_out_rest_of_application(driver, position_id)
+    return
 
 def random_email(name=None):
     if name is None:
@@ -253,12 +256,13 @@ def random_email(name=None):
     return random.choices(mailGens, MAIL_GENERATION_WEIGHTS)[0](*name.split(" ")).lower() + "@" + \
            random.choices(EMAIL_DATA, emailChoices)[0][1]
 
+def random_phone():
+    return random.randint(2021000000, 2029999999)
 
 def main():
     while True:
-        random_city = random.choice(list(CITIES_TO_URLS.keys()))
         try:
-            driver = start_driver(random_city)
+            driver = start_driver()
         except Exception as e:
             print(f"FAILED TO START DRIVER: {e}")
             pass
@@ -268,21 +272,17 @@ def main():
         fake_first_name = fake.first_name()
         fake_last_name = fake.last_name()
         fake_email = random_email(fake_first_name+' '+fake_last_name)
+        fake_phone = random_phone()
 
         fake_identity = {
             'first_name': fake_first_name,
             'last_name': fake_last_name,
-            'email': fake_email
+            'email': fake_email,
+            'phone': fake_phone
         }
 
         try:
-            generate_account(driver, fake_identity)
-        except Exception as e:
-            print(f"FAILED TO CREATE ACCOUNT: {e}")
-            pass
-
-        try:
-            fill_out_application_and_submit(driver, random_city, fake_identity)
+            fill_out_first_page(driver, fake_identity)
         except Exception as e:
             print(f"FAILED TO FILL OUT APPLICATION AND SUBMIT: {e}")
             pass

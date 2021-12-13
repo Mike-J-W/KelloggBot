@@ -1,1 +1,1 @@
-RESUME_PATH = '/src/resume.png'
+FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScAb8hGydbsymZMFfci8cj0hFKJNCd6j4tlUAsE0SLfpBxCgg/viewform'
