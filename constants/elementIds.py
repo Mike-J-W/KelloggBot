@@ -1,6 +1,6 @@
 POSITIONS = ['i21', 'i24', 'i27', 'i30']
 POLICE_OFFICER_MIN_QUAL = 'i5'
-PROSPECT_DAYS = ['i5', 'i8', 'i11', 'i14']
+PROSPECT_DAYS = ['i5', 'i8', 'i11', 'i14', 'i17', 'i20', 'i23']
 DC_RESIDENCY = 'i5'
 AGE_CONFIRM = 'i30'
 DC_GRAD = ['i5', 'i8']

@@ -124,12 +124,14 @@ def start_driver():
 def fill_out_rest_of_application(driver, position_id):
     if position_id == 'i21':
         # Confirm qualifications
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(POLICE_OFFICER_MIN_QUAL).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_xpath(NEXT_BUTTON).click()
 
         # Choose a Prospect Day
         day_id = random.choice(PROSPECT_DAYS)
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(day_id).click()
         print(f'--filled out officer info')
     elif position_id in ['i24', 'i27']:
@@ -137,13 +139,16 @@ def fill_out_rest_of_application(driver, position_id):
         education = ''
         if position_id == 'i24':
             # Confirm residency and age
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(DC_RESIDENCY).click()
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(AGE_CONFIRM).click()
-            time.sleep(random.uniform(MIN_SLEEP, 4))
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_xpath(NEXT_BUTTON).click()
 
             # Give education background
             day_id = random.choices(DC_GRAD, [3, 1])[0]
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(DC_RESIDENCY).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_xpath(NEXT_BUTTON).click()
@@ -154,15 +159,16 @@ def fill_out_rest_of_application(driver, position_id):
                 education = random.choice(NON_DC_ED)
             print(f'--filled out non-hs cadet info')
         if position_id == 'i27': 
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(HS_CADET_CONFIRM).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_xpath(NEXT_BUTTON).click()
             education = random.choice(DC_SCHOOLS)
 
         print(education)
-        time.sleep(2)
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_class_name("quantumWizMenuPaperselectOptionList").click()
-        time.sleep(2)
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         options=driver.find_element_by_class_name("exportSelectPopup")
         elements = options.find_elements_by_tag_name('span')
         actions = ActionChains(driver)
@@ -179,23 +185,30 @@ def fill_out_rest_of_application(driver, position_id):
 
         # Heard about the job
         source_id = random.choice(HEARD_ABOUT)
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(source_id).click()
         print(f'--filled out cadet info')
     elif position_id == 'i30':
         # Confirm various statements
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(RESERVE_CONFIRM_1).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(RESERVE_CONFIRM_2).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(RESERVE_CONFIRM_3).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(RESERVE_CONFIRM_4).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_xpath(NEXT_BUTTON).click()
 
         # Confirm another statement
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(RESERVE_TRAIN_CONFIRM).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_xpath(NEXT_BUTTON).click()
 
         # Confirm another statement
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(POLICE_OFFICER_MIN_QUAL).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_xpath(NEXT_BUTTON).click()
@@ -209,6 +222,7 @@ def fill_out_rest_of_application(driver, position_id):
 
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     driver.find_element_by_xpath(SUBMIT_BUTTON).click()
+    time.sleep(5)
 
     print(f"successfully submitted the application")
     return
@@ -218,13 +232,18 @@ def fill_out_first_page(driver, fake_identity):
 
     # fill out text fields
     text_fields = driver.find_elements_by_xpath(TEXT_FIELDS)
+    time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[0].send_keys(fake_identity['first_name'])
+    time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[1].send_keys(fake_identity['last_name'])
+    time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[2].send_keys(fake_identity['email'])
+    time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[3].send_keys(fake_identity['phone'])
 
     # fill out radio button
     position_id = random.choices(POSITIONS, [4, 3, 1, 2])[0]
+    time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     driver.find_element_by_id(position_id).click()
 
     # go to next page
@@ -290,7 +309,7 @@ def main():
             continue
 
         driver.close()
-        time.sleep(5)
+        time.sleep(random.randint(60, 300))
 
 
 if __name__ == '__main__':
