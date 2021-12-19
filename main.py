@@ -121,7 +121,7 @@ def start_driver():
     time.sleep(2)
     return driver
 
-def fill_out_rest_of_application(driver, position_id):
+def fill_out_rest_of_application(driver, position_id, fake_identity):
     if position_id == 'i21':
         # Confirm qualifications
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
@@ -162,6 +162,14 @@ def fill_out_rest_of_application(driver, position_id):
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(HS_CADET_CONFIRM).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+            driver.find_element_by_id(HS_TRANSPORTATION).click()
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+            driver.find_element_by_id(HS_WIFI).click()
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+            driver.find_element_by_id(HS_COMPUTER).click()
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+            driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
+            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_xpath(NEXT_BUTTON).click()
             education = random.choice(DC_SCHOOLS)
 
@@ -183,10 +191,18 @@ def fill_out_rest_of_application(driver, position_id):
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-        # Heard about the job
+        # Additional Information
         source_id = random.choice(HEARD_ABOUT)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(source_id).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+        driver.find_element_by_id(CADET_TRANSPORTATION).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+        driver.find_element_by_id(CADET_WIFI).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+        driver.find_element_by_id(CADET_COMPUTER).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+        driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
         print(f'--filled out cadet info')
     elif position_id == 'i30':
         # Confirm various statements
@@ -252,7 +268,7 @@ def fill_out_first_page(driver, fake_identity):
 
     print(f"--filled out page 1")
 
-    fill_out_rest_of_application(driver, position_id)
+    fill_out_rest_of_application(driver, position_id, fake_identity)
     return
 
 def random_email(name=None):
@@ -278,6 +294,26 @@ def random_email(name=None):
 def random_phone():
     return random.randint(2021000000, 2029999999)
 
+def random_parent_info(last_name):
+    parent_situation = random.choices([['M'], ['F'], ['M', 'F'], ['F', 'M'], ['M', 'M'], ['F', 'F']], [0.08, 0.22, 0.27, 0.27, 0.08, 0.08])[0]
+    parent_info = []
+    name_email_separator = random.choice([': ', ' - ', '-', ', ', ' '])
+    parent_separator = random.choice(['; ', '. ', ' - ', ', ', ' '])
+    for p in parent_situation:
+        parent_name = ''
+        if p == 'M':
+            parent_name = fake.first_name_male()
+        elif p == 'F':
+            parent_name = fake.first_name_female()
+        if random.randint(1, 5) == 1:
+            last_name = fake.last_name()
+        parent_full_name = parent_name+' '+last_name
+        parent_email = random_email(parent_full_name)
+        parent_info.append(parent_full_name+name_email_separator+parent_email)
+    parent_content = parent_separator.join(parent_info)
+    print(parent_content)
+    return parent_content
+
 def main():
     while True:
         try:
@@ -292,12 +328,14 @@ def main():
         fake_last_name = fake.last_name()
         fake_email = random_email(fake_first_name+' '+fake_last_name)
         fake_phone = random_phone()
+        fake_parent_info = random_parent_info(fake_last_name)
 
         fake_identity = {
             'first_name': fake_first_name,
             'last_name': fake_last_name,
             'email': fake_email,
-            'phone': fake_phone
+            'phone': fake_phone,
+            'parent_info': fake_parent_info
         }
 
         try:
