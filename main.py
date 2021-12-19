@@ -311,7 +311,6 @@ def random_parent_info(last_name):
         parent_email = random_email(parent_full_name)
         parent_info.append(parent_full_name+name_email_separator+parent_email)
     parent_content = parent_separator.join(parent_info)
-    print(parent_content)
     return parent_content
 
 def main():
