@@ -314,6 +314,7 @@ def random_parent_info(last_name):
     return parent_content
 
 def main():
+    submissions = 0
     while True:
         try:
             driver = start_driver()
@@ -346,6 +347,8 @@ def main():
             continue
 
         driver.close()
+        submissions += 1
+        print(f'{submissions} completed submissions')
         time.sleep(random.randint(60, 300))
 
 
