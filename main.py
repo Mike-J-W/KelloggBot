@@ -198,12 +198,6 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(source_id).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(CADET_TRANSPORTATION).click()
-        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(CADET_WIFI).click()
-        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(CADET_COMPUTER).click()
-        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
         print(f'--filled out cadet info')
     elif position_id == 'i30':
