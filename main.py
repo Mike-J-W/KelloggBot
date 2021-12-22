@@ -135,7 +135,6 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
         driver.find_element_by_id(day_id).click()
         print(f'--filled out officer info')
     elif position_id in ['i24', 'i27']:
-        day_id = ''
         education = ''
         if position_id == 'i24':
             # Confirm residency and age
@@ -147,15 +146,15 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
             driver.find_element_by_xpath(NEXT_BUTTON).click()
 
             # Give education background
-            day_id = random.choices(DC_GRAD, [3, 1])[0]
+            dc_grad_id = random.choices(DC_GRAD, [3, 1])[0]
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(DC_RESIDENCY).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_xpath(NEXT_BUTTON).click()
 
-            if day_id == 'i5':
+            if dc_grad_id == 'i5':
                 education = random.choice(DC_SCHOOLS)
-            if day_id == 'i8':
+            if dc_grad_id == 'i8':
                 education = random.choice(NON_DC_ED)
             print(f'--filled out non-hs cadet info')
         if position_id == 'i27': 
@@ -192,7 +191,10 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
         driver.find_element_by_xpath(NEXT_BUTTON).click()
 
         # Additional Information
-        source_id = random.choice(HEARD_ABOUT)
+        day_id = random.choice(CADET_PROSPECT_DAYS)
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+        driver.find_element_by_id(day_id).click()
+        source_id = random.choice(CADET_HEARD_ABOUT)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
         driver.find_element_by_id(source_id).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
