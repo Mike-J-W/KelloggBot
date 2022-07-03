@@ -1,6 +1,6 @@
 POSITIONS = ['i21', 'i24', 'i27', 'i30']
 POLICE_OFFICER_MIN_QUAL = 'i5'
-PROSPECT_DAYS = ['i5', 'i8', 'i11', 'i14']
+PROSPECT_DAYS = ['i8', 'i11', 'i14']
 CADET_RESIDENCY = ['i5', 'i8', 'i11', 'i14', 'i17', 'i20']
 CADET_RESIDENCY_WEIGHT = [4, 2, 2, 1, 1, 1]
 DC_RESIDENCY = 'i5'
@@ -20,4 +20,4 @@ CADET_COMPUTER = 'i66'
 HS_TRANSPORTATION = 'i15'
 HS_WIFI = 'i25'
 HS_COMPUTER = 'i35'
-CADET_PROSPECT_DAYS = ['i5', 'i8', 'i11', 'i14']
+CADET_PROSPECT_DAYS = ['i8', 'i11', 'i14']
