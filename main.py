@@ -1,3 +1,4 @@
+import argparse
 import requests
 import functools
 import os
@@ -6,12 +7,13 @@ import random
 import sys
 import time
 
-import speech_recognition as sr
 from faker import Faker
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from pdf2image import convert_from_path
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -34,27 +36,6 @@ fake = Faker()
 # https://stackoverflow.com/questions/230751/how-can-i-flush-the-output-of-the-print-function-unbuffer-python-output#:~:text=Changing%20the%20default%20in%20one%20module%20to%20flush%3DTrue
 print = functools.partial(print, flush=True)
 
-r = sr.Recognizer()
-
-def audioToText(mp3Path):
-    # deletes old file
-    try:
-        os.remove(CAPTCHA_WAV_FILENAME)
-    except FileNotFoundError:
-        pass
-    # convert wav to mp3                                                            
-    subprocess.run(f"ffmpeg -i {mp3Path} {CAPTCHA_WAV_FILENAME}", shell=True, timeout=5)
-
-    with sr.AudioFile(CAPTCHA_WAV_FILENAME) as source:
-        audio_text = r.listen(source)
-        try:
-            text = r.recognize_google(audio_text)
-            print('Converting audio transcripts into text ...')
-            return(text)     
-        except Exception as e:
-            print(e)
-            print('Sorry.. run again...')
-
 def saveFile(content,filename):
     with open(filename, "wb") as handle:
         for data in content.iter_content():
@@ -63,23 +44,23 @@ def saveFile(content,filename):
 
 def solveCaptcha(driver):
     # Logic to click through the reCaptcha to the Audio Challenge, download the challenge mp3 file, run it through the audioToText function, and send answer
-    googleClass = driver.find_elements_by_class_name(CAPTCHA_BOX)[0]
+    googleClass = driver.find_elements(By.CLASS_NAME, CAPTCHA_BOX)[0]
     time.sleep(2)
-    outeriframe = googleClass.find_element_by_tag_name('iframe')
+    outeriframe = googleClass.find_element(By.TAG_NAME, 'iframe')
     time.sleep(1)
     outeriframe.click()
     time.sleep(2)
-    allIframesLen = driver.find_elements_by_tag_name('iframe')
+    allIframesLen = driver.find_elements(By.TAG_NAME, 'iframe')
     time.sleep(1)
     audioBtnFound = False
     audioBtnIndex = -1
     for index in range(len(allIframesLen)):
         driver.switch_to.default_content()
-        iframe = driver.find_elements_by_tag_name('iframe')[index]
+        iframe = driver.find_elements(By.TAG_NAME, 'iframe')[index]
         driver.switch_to.frame(iframe)
         driver.implicitly_wait(2)
         try:
-            audioBtn = driver.find_element_by_id(RECAPTCHA_AUDIO_BUTTON) or driver.find_element_by_id(RECAPTCHA_ANCHOR)
+            audioBtn = driver.find_element(By.ID, RECAPTCHA_AUDIO_BUTTON) or driver.find_element(By.ID, RECAPTCHA_ANCHOR)
             audioBtn.click()
             audioBtnFound = True
             audioBtnIndex = index
@@ -89,19 +70,19 @@ def solveCaptcha(driver):
     if audioBtnFound:
         try:
             while True:
-                href = driver.find_element_by_id(AUDIO_SOURCE).get_attribute('src')
+                href = driver.find_element(By.ID, AUDIO_SOURCE).get_attribute('src')
                 response = requests.get(href, stream=True)
                 saveFile(response, CAPTCHA_MP3_FILENAME)
                 response = audioToText(CAPTCHA_MP3_FILENAME)
                 print(response)
                 driver.switch_to.default_content()
-                iframe = driver.find_elements_by_tag_name('iframe')[audioBtnIndex]
+                iframe = driver.find_elements(By.TAG_NAME, 'iframe')[audioBtnIndex]
                 driver.switch_to.frame(iframe)
-                inputbtn = driver.find_element_by_id(AUDIO_RESPONSE)
+                inputbtn = driver.find_element(By.ID, AUDIO_RESPONSE)
                 inputbtn.send_keys(response)
                 inputbtn.send_keys(Keys.ENTER)
                 time.sleep(2)
-                errorMsg = driver.find_elements_by_class_name(AUDIO_ERROR_MESSAGE)[0]
+                errorMsg = driver.find_elements(By.CLASS_NAME, AUDIO_ERROR_MESSAGE)[0]
                 if errorMsg.text == "" or errorMsg.value_of_css_property('display') == 'none':
                     print("reCaptcha defeated!")
                     break
@@ -114,8 +95,8 @@ def solveCaptcha(driver):
     time.sleep(2)
     driver.switch_to.default_content()
 
-def start_driver():
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+def start_driver(chrome_options):
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.get(FORM_URL)
     driver.implicitly_wait(10)
     time.sleep(2)
@@ -125,30 +106,30 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
     if position_id == 'i21':
         # Confirm qualifications
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(POLICE_OFFICER_MIN_QUAL).click()
+        driver.find_element(By.ID, POLICE_OFFICER_MIN_QUAL).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(NEXT_BUTTON).click()
+        driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
         # Choose a Prospect Day
         day_id = random.choice(PROSPECT_DAYS)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(day_id).click()
+        driver.find_element(By.ID, day_id).click()
         print(f'--filled out officer info')
     elif position_id in ['i24', 'i27']:
         education = ''
         if position_id == 'i24':
             # Confirm residency and age
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(random.choices(CADET_RESIDENCY, CADET_RESIDENCY_WEIGHT)[0]).click()
+            driver.find_element(By.ID, random.choices(CADET_RESIDENCY, CADET_RESIDENCY_WEIGHT)[0]).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(AGE_CONFIRM).click()
+            driver.find_element(By.ID, AGE_CONFIRM).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_xpath(NEXT_BUTTON).click()
+            driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
             # Give education background
             dc_grad_id = random.choices(DC_GRAD, [3, 1])[0]
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(DC_RESIDENCY).click()
+            driver.find_element(By.ID, DC_RESIDENCY).click()
 
             if dc_grad_id == 'i5':
                 education = random.choice(DC_SCHOOLS)
@@ -157,28 +138,28 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
             print(f'--filled out non-hs cadet info')
         if position_id == 'i27': 
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(HS_CADET_CONFIRM).click()
+            driver.find_element(By.ID, HS_CADET_CONFIRM).click()
 #            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-#            driver.find_element_by_id(HS_TRANSPORTATION).click()
+#            driver.find_element(By.ID, HS_TRANSPORTATION).click()
 #            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-#            driver.find_element_by_id(HS_WIFI).click()
+#            driver.find_element(By.ID, HS_WIFI).click()
 #            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-#            driver.find_element_by_id(HS_COMPUTER).click()
+#            driver.find_element(By.ID, HS_COMPUTER).click()
 #            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-#            driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
+#            driver.find_element(By.XPATH, PARENTS_INFO).send_keys(fake_identity['parent_info'])
 #            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-#            driver.find_element_by_xpath(NEXT_BUTTON).click()
+#            driver.find_element(By.XPATH, NEXT_BUTTON).click()
             education = random.choice(DC_SCHOOLS)
 
         print(education)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(NEXT_BUTTON).click()
+        driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(DROPDOWN_MENU).click()
+        driver.find_element(By.XPATH, DROPDOWN_MENU).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        options=driver.find_element_by_xpath(EDUCATION_LIST)
-        elements = options.find_elements_by_tag_name('span')
+        options=driver.find_element(By.XPATH, EDUCATION_LIST)
+        elements = options.find_elements(By.TAG_NAME, 'span')
         actions = ActionChains(driver)
         try:
             for e in elements:
@@ -189,52 +170,52 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
           elements[5].click()
 
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(NEXT_BUTTON).click()
+        driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
         # Additional Information
         day_id = random.choice(CADET_PROSPECT_DAYS)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(day_id).click()
+        driver.find_element(By.ID, day_id).click()
         source_id = random.choice(CADET_HEARD_ABOUT)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(source_id).click()
+        driver.find_element(By.ID, source_id).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
+        driver.find_element(By.XPATH, PARENTS_INFO).send_keys(fake_identity['parent_info'])
         print(f'--filled out cadet info')
     elif position_id == 'i30':
         # Confirm various statements
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(RESERVE_CONFIRM_1).click()
+        driver.find_element(By.ID, RESERVE_CONFIRM_1).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(RESERVE_CONFIRM_2).click()
+        driver.find_element(By.ID, RESERVE_CONFIRM_2).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(RESERVE_CONFIRM_3).click()
+        driver.find_element(By.ID, RESERVE_CONFIRM_3).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(RESERVE_CONFIRM_4).click()
+        driver.find_element(By.ID, RESERVE_CONFIRM_4).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(NEXT_BUTTON).click()
+        driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
         # Confirm another statement
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(RESERVE_TRAIN_CONFIRM).click()
+        driver.find_element(By.ID, RESERVE_TRAIN_CONFIRM).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(NEXT_BUTTON).click()
+        driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
         # Confirm another statement
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(POLICE_OFFICER_MIN_QUAL).click()
+        driver.find_element(By.ID, POLICE_OFFICER_MIN_QUAL).click()
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_xpath(NEXT_BUTTON).click()
+        driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
         # Choose a Prospect Day
         day_id = random.choice(PROSPECT_DAYS)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_id(day_id).click()
+        driver.find_element(By.ID, day_id).click()
 
         print(f'--filled out reserve info')
 
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-    driver.find_element_by_xpath(SUBMIT_BUTTON).click()
+    driver.find_element(By.XPATH, SUBMIT_BUTTON).click()
     time.sleep(5)
 
     print(f"successfully submitted the application")
@@ -244,8 +225,8 @@ def fill_out_first_page(driver, fake_identity):
     driver.implicitly_wait(10)
 
     # fill out text fields
-    text_fields = driver.find_elements_by_xpath(TEXT_FIELDS)
-    email_field = driver.find_element_by_xpath(EMAIL_FIELD)
+    text_fields = driver.find_elements(By.XPATH, TEXT_FIELDS)
+    email_field = driver.find_element(By.XPATH, EMAIL_FIELD)
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[0].send_keys(fake_identity['first_name'])
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
@@ -258,11 +239,11 @@ def fill_out_first_page(driver, fake_identity):
     # fill out radio button
     position_id = random.choices(POSITIONS, POSITION_WEIGHTS)[0]
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-    driver.find_element_by_id(position_id).click()
+    driver.find_element(By.ID, position_id).click()
 
     # go to next page
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-    driver.find_element_by_xpath(NEXT_BUTTON).click()
+    driver.find_element(By.XPATH, NEXT_BUTTON).click()
 
     print(f"--filled out page 1")
 
@@ -313,11 +294,19 @@ def random_parent_info(last_name):
     parent_content = parent_separator.join(parent_info)
     return parent_content
 
-def main():
+def main(arguments):
+    parser = argparse.ArgumentParser(description='Submit to the MPD DC interest form.')
+    parser.add_argument('--headless', default=False, action='store_true',
+                    help='Run the bot without a browser window.')
+    args = parser.parse_args(arguments)
+
     submissions = 0
+    chrome_options = Options()
+    if args.headless:
+        chrome_options.add_argument("--headless")
     while True:
         try:
-            driver = start_driver()
+            driver = start_driver(chrome_options)
         except Exception as e:
             print(f"FAILED TO START DRIVER: {e}")
             pass
@@ -353,5 +342,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
     sys.exit()

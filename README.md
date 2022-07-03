@@ -12,12 +12,6 @@ On mac/pc:
 
 This will install `webdriver-manager` to automatically download the correct chrome driver. If you are having issues opening having it open chrome, check https://github.com/SergeyPirogov/webdriver_manager.
 
-Poppler must also be installed for pdf2image. Follow the instructions at https://pdf2image.readthedocs.io/en/latest/installation.html to install.
-
-It needs to be found in your `PATH` variable.
-
-`export PATH=$PATH:$(pwd)`
-
 `python main.py` to run. It will loop until you kill the job. `ctrl + c` in your terminal to give the pro lifes a break (optional).
 
 mac:
