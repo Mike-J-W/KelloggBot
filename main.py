@@ -139,7 +139,7 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
         if position_id == 'i24':
             # Confirm residency and age
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(DC_RESIDENCY).click()
+            driver.find_element_by_id(random.choices(CADET_RESIDENCY, CADET_RESIDENCY_WEIGHT)[0]).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(AGE_CONFIRM).click()
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
@@ -149,8 +149,6 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
             dc_grad_id = random.choices(DC_GRAD, [3, 1])[0]
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(DC_RESIDENCY).click()
-            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_xpath(NEXT_BUTTON).click()
 
             if dc_grad_id == 'i5':
                 education = random.choice(DC_SCHOOLS)
@@ -160,23 +158,26 @@ def fill_out_rest_of_application(driver, position_id, fake_identity):
         if position_id == 'i27': 
             time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
             driver.find_element_by_id(HS_CADET_CONFIRM).click()
-            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(HS_TRANSPORTATION).click()
-            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(HS_WIFI).click()
-            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_id(HS_COMPUTER).click()
-            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
-            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-            driver.find_element_by_xpath(NEXT_BUTTON).click()
+#            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+#            driver.find_element_by_id(HS_TRANSPORTATION).click()
+#            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+#            driver.find_element_by_id(HS_WIFI).click()
+#            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+#            driver.find_element_by_id(HS_COMPUTER).click()
+#            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+#            driver.find_element_by_xpath(PARENTS_INFO).send_keys(fake_identity['parent_info'])
+#            time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+#            driver.find_element_by_xpath(NEXT_BUTTON).click()
             education = random.choice(DC_SCHOOLS)
 
         print(education)
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        driver.find_element_by_class_name("quantumWizMenuPaperselectOptionList").click()
+        driver.find_element_by_xpath(NEXT_BUTTON).click()
+
         time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-        options=driver.find_element_by_class_name("exportSelectPopup")
+        driver.find_element_by_xpath(DROPDOWN_MENU).click()
+        time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
+        options=driver.find_element_by_xpath(EDUCATION_LIST)
         elements = options.find_elements_by_tag_name('span')
         actions = ActionChains(driver)
         try:
@@ -244,17 +245,18 @@ def fill_out_first_page(driver, fake_identity):
 
     # fill out text fields
     text_fields = driver.find_elements_by_xpath(TEXT_FIELDS)
+    email_field = driver.find_element_by_xpath(EMAIL_FIELD)
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[0].send_keys(fake_identity['first_name'])
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     text_fields[1].send_keys(fake_identity['last_name'])
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-    text_fields[2].send_keys(fake_identity['email'])
+    email_field.send_keys(fake_identity['email'])
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
-    text_fields[3].send_keys(fake_identity['phone'])
+    text_fields[2].send_keys(fake_identity['phone'])
 
     # fill out radio button
-    position_id = random.choices(POSITIONS, [4, 3, 1, 2])[0]
+    position_id = random.choices(POSITIONS, POSITION_WEIGHTS)[0]
     time.sleep(random.uniform(MIN_SLEEP, MAX_SLEEP))
     driver.find_element_by_id(position_id).click()
 
@@ -288,7 +290,9 @@ def random_email(name=None):
            random.choices(EMAIL_DATA, emailChoices)[0][1]
 
 def random_phone():
-    return random.randint(2021000000, 2029999999)
+    area_code = random.choice(PHONE_AREA_CODES)
+    seven = random.randint(1000000, 9999999)
+    return int(str(area_code) + str(seven))
 
 def random_parent_info(last_name):
     parent_situation = random.choices([['M'], ['F'], ['M', 'F'], ['F', 'M'], ['M', 'M'], ['F', 'F']], [0.08, 0.22, 0.27, 0.27, 0.08, 0.08])[0]
@@ -345,7 +349,7 @@ def main():
         driver.close()
         submissions += 1
         print(f'{submissions} completed submissions')
-        time.sleep(random.randint(60, 300))
+        time.sleep(random.randint(60, 3600))
 
 
 if __name__ == '__main__':

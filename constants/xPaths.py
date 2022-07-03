@@ -1,5 +1,7 @@
 TEXT_FIELDS = '//input[@type="text"]'
+EMAIL_FIELD = '//input[@type="email"]'
 NEXT_BUTTON = '//div[@jsname="OCpkoe"]'
 SUBMIT_BUTTON = '//div[@jsname="M2UYVd"]'
 DROPDOWN_MENU = '//div[@role="listbox"]'
 PARENTS_INFO = '//input[@type="text"]'
+EDUCATION_LIST = '//div[@jsname="V68bde"]'
